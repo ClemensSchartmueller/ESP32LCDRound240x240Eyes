@@ -79,14 +79,34 @@ struct {                // One-per-eye structure
   int16_t   xposition;  // x position of eye image
 } eye[NUM_EYES];
 
+
 uint32_t startTime;  // For FPS indicator
 
+
+#define PIR // comment out if no PIR is used
+
+// Define the GPIO pin for the PIR sensor
+
+#ifdef PIR
+const int PIR_PIN = 14;
+// Variables for managing the display on/off state
+bool displayIsOn = false;
+unsigned long lastMotionTime = 0;
+const long DISPLAY_ON_DELAY_MS = 1000; // 1 second in milliseconds
+#endif 
 // INITIALIZATION -- runs once at startup ----------------------------------
 void setup(void) {
-  Serial.begin(115200);
+  Serial.begin(9600);
+
+  
   //while (!Serial);
   Serial.println("Starting");
 
+  #ifdef PIR
+  // Initialize the PIR sensor pin as an input
+  pinMode(PIR_PIN, INPUT);
+  #endif
+  
 #if defined(DISPLAY_BACKLIGHT) && (DISPLAY_BACKLIGHT >= 0)
   // Enable backlight pin, initially off
   Serial.println("Backlight turned off");
@@ -124,10 +144,57 @@ void setup(void) {
   analogWrite(DISPLAY_BACKLIGHT, BACKLIGHT_MAX);
 #endif
 
+  #ifdef PIR
+  turnDisplayOff(); // initially, turn it off
+  #endif
   startTime = millis(); // For frame-rate calculation
 }
 
 // MAIN LOOP -- runs continuously after setup() ----------------------------
 void loop() {
+  // Read the state of the PIR sensor
+  #ifdef PIR
+  int pirState = digitalRead(PIR_PIN);
+
+  // If motion is detected
+  if (pirState == HIGH) {
+    // Update the last time motion was seen
+    lastMotionTime = millis();
+
+    // If the display is currently off, turn it on
+    if (!displayIsOn) {
+      turnDisplayOn();
+    }
+    
+    // Your code to render the eye animation goes here
+  }
+  
+  // Check if enough time has passed since the last motion detection
+  if (displayIsOn && (millis() - lastMotionTime > DISPLAY_ON_DELAY_MS)) {
+    // Turn the display off
+    turnDisplayOff();
+  }
+  #endif
   updateEye();
 }
+#ifdef PIR
+void turnDisplayOn() {
+  // Add the code to power on your display and start your animation.
+  // This could involve waking the display from sleep or simply sending a command to turn it on.
+  // Example: tft.writecommand(TFT_CMD_DISP_ON);
+  
+  // Set the flag to true
+  displayIsOn = true;
+  Serial.println("Motion detected, display is now ON.");
+}
+
+void turnDisplayOff() {
+  // Add the code to power off your display.
+  // This often involves putting the display in a low-power sleep mode.
+  // Example: tft.writecommand(TFT_CMD_DISP_OFF);
+  
+  // Set the flag to false
+  displayIsOn = false;
+  Serial.println("No motion, display is now OFF.");
+}
+#endif
