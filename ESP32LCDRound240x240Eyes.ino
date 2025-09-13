@@ -179,10 +179,8 @@ void loop() {
 }
 #ifdef PIR
 void turnDisplayOn() {
-  // Add the code to power on your display and start your animation.
-  // This could involve waking the display from sleep or simply sending a command to turn it on.
-  // Example: tft.writecommand(TFT_CMD_DISP_ON);
   
+  tft.writecommand(TFT_SLPOUT);
   // Set the flag to true
   displayIsOn = true;
   Serial.println("Motion detected, display is now ON.");
@@ -192,7 +190,8 @@ void turnDisplayOff() {
   // Add the code to power off your display.
   // This often involves putting the display in a low-power sleep mode.
   // Example: tft.writecommand(TFT_CMD_DISP_OFF);
-  
+
+  tft.writecommand(TFT_SLPIN);
   // Set the flag to false
   displayIsOn = false;
   Serial.println("No motion, display is now OFF.");
