@@ -41,6 +41,7 @@ void initEyes(void)
     eye[e].tft_cs      = eyeInfo[e].select;
     eye[e].blink.state = NOBLINK;
     eye[e].xposition   = eyeInfo[e].xposition;
+    eye[e].yposition   = eyeInfo[e].yposition;
 
     pinMode(eye[e].tft_cs, OUTPUT);
     digitalWrite(eye[e].tft_cs, LOW);
@@ -111,7 +112,7 @@ void drawEye( // Renders one eye.  Inputs must be pre-clipped & valid.
   // reset on each frame here in case of an SPI glitch.
   digitalWrite(eye[e].tft_cs, LOW);
   tft.startWrite();
-  tft.setAddrWindow(eye[e].xposition, 0, 128, 128);
+  tft.setAddrWindow(eye[e].xposition, eye[e].yposition, SCREEN_WIDTH, SCREEN_HEIGHT);
 
   // Now just issue raw 16-bit values for every pixel...
 
@@ -135,9 +136,9 @@ void drawEye( // Renders one eye.  Inputs must be pre-clipped & valid.
         p = pgm_read_word(sclera + scleraY * SCLERA_WIDTH + scleraX);
       } else {                                          // Maybe iris...
         p = pgm_read_word(polar + irisY * IRIS_WIDTH + irisX);                        // Polar angle/dist
-        d = (iScale * (p & 0x7F)) / 128;                // Distance (Y)
+        d = (iScale * (p & 0x7F)) / 200;                // Distance (Y)
         if (d < IRIS_MAP_HEIGHT) {                      // Within iris area
-          a = (IRIS_MAP_WIDTH * (p >> 7)) / 512;        // Angle (X)
+          a = (IRIS_MAP_WIDTH * (p >> 7)) / 800;        // Angle (X)
           p = pgm_read_word(iris + d * IRIS_MAP_WIDTH + a);                           // Pixel = iris
         } else {                                        // Not in iris
           p = pgm_read_word(sclera + scleraY * SCLERA_WIDTH + scleraX);               // Pixel = sclera
@@ -338,8 +339,8 @@ void frame(uint16_t iScale) // Iris scale (0-1023)
   // Process motion, blinking and iris scale into renderable values
 
   // Scale eye X/Y positions (0-1023) to pixel units used by drawEye()
-  eyeX = map(eyeX, 0, 1023, 0, SCLERA_WIDTH  - 128);
-  eyeY = map(eyeY, 0, 1023, 0, SCLERA_HEIGHT - 128);
+  eyeX = map(eyeX, 0, 1023, 0, SCLERA_WIDTH  - SCREEN_WIDTH);
+  eyeY = map(eyeY, 0, 1023, 0, SCLERA_HEIGHT - SCREEN_HEIGHT);
 
   // Horizontal position is offset so that eyes are very slightly crossed
   // to appear fixated (converged) at a conversational distance.  Number
@@ -349,7 +350,7 @@ void frame(uint16_t iScale) // Iris scale (0-1023)
     if (eyeIndex == 1) eyeX += 4;
     else eyeX -= 4;
   }
-  if (eyeX > (SCLERA_WIDTH - 128)) eyeX = (SCLERA_WIDTH - 128);
+  if (eyeX > (SCLERA_WIDTH - SCREEN_WIDTH)) eyeX = (SCLERA_WIDTH - SCREEN_WIDTH);
 
   // Eyelids are rendered using a brightness threshold image.  This same
   // map can be used to simplify another problem: making the upper eyelid
