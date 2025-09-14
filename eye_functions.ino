@@ -128,10 +128,13 @@ void drawEye( // Renders one eye.  Inputs must be pre-clipped & valid.
     irisX   = scleraXsave - (SCLERA_WIDTH - IRIS_WIDTH) / 2;
     if (e) lidX = 0; else lidX = SCREEN_WIDTH - 1;
     for (screenX = 0; screenX < SCREEN_WIDTH; screenX++, scleraX++, irisX++, lidX += dlidX) {
+      #ifdef EYELIDS
       if ((pgm_read_byte(lower + screenY * SCREEN_WIDTH + lidX) <= lT) ||
           (pgm_read_byte(upper + screenY * SCREEN_WIDTH + lidX) <= uT)) {              // Covered by eyelid
         p = 0;
-      } else if ((irisY < 0) || (irisY >= IRIS_HEIGHT) ||
+      } else 
+      #endif
+      if ((irisY < 0) || (irisY >= IRIS_HEIGHT) ||
                  (irisX < 0) || (irisX >= IRIS_WIDTH)) { // In sclera
         p = pgm_read_word(sclera + scleraY * SCLERA_WIDTH + scleraX);
       } else {                                          // Maybe iris...

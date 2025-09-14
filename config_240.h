@@ -36,6 +36,8 @@
 #define DISPLAY_BACKLIGHT  -1 // Pin for backlight control (-1 for none)
 #define BACKLIGHT_MAX    255
 
+//#define EYELIDS
+
 // EYE LIST ----------------------------------------------------------------
 #define NUM_EYES 1 // Number of eyes to display (1 or 2)
 
